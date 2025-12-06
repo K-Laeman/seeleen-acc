@@ -6,6 +6,7 @@ import {
   incomeQuerySchema,
   validateQueryParams,
 } from "@/lib/utils";
+import { logger } from "@/lib/logger";
 
 const incomeSchema = z.object({
   amount: z.number().positive("Amount must be positive"),
@@ -82,7 +83,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error fetching income:", error);
+    logger.error("Error fetching income", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: "Failed to fetch income" },
       { status: 500 }
@@ -128,7 +129,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    console.error("Error creating income:", error);
+    logger.error("Error creating income", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: "Failed to create income" },
       { status: 500 }

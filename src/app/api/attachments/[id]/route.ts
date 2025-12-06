@@ -86,7 +86,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (err) {
-    logger.error("Error deleting attachment", { err });
+    logger.error("Error deleting attachment", err instanceof Error ? err : undefined);
     return NextResponse.json(
       { error: "เกิดข้อผิดพลาดในการลบไฟล์แนบ" },
       { status: 500 }

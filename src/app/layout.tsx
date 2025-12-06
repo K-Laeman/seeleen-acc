@@ -3,6 +3,7 @@ import { Noto_Sans_Thai } from "next/font/google";
 import "./globals.css";
 import Sidebar from "@/components/Sidebar";
 import Providers from "@/components/Providers";
+import { Toaster } from "@/components/ui/sonner";
 
 const notoSansThai = Noto_Sans_Thai({
   subsets: ["thai", "latin"],
@@ -33,8 +34,10 @@ export default function RootLayout({
               </div>
             </main>
           </div>
+          <Toaster />
         </Providers>
       </body>
     </html>
   );
 }
+

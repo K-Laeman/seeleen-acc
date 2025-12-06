@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { expenseQuerySchema, validateQueryParams } from "@/lib/utils";
+import { logger } from "@/lib/logger";
 
 const expenseSchema = z.object({
   amount: z.number().positive("Amount must be positive"),
@@ -89,7 +90,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error fetching expenses:", error);
+    logger.error("Error fetching expenses", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: "Failed to fetch expenses" },
       { status: 500 }
@@ -120,7 +121,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    console.error("Error creating expense:", error);
+    logger.error("Error creating expense", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: "Failed to create expense" },
       { status: 500 }

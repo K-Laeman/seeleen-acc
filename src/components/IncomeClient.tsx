@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
@@ -37,7 +48,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
 import {
   formatCurrency,
   formatDate,
@@ -107,6 +117,8 @@ export default function IncomeClient({
   const [editingIncome, setEditingIncome] = useState<Income | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentAttachments, setCurrentAttachments] = useState<Attachment[]>([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [incomeToDelete, setIncomeToDelete] = useState<string | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -128,7 +140,8 @@ export default function IncomeClient({
 
   async function refreshData() {
     const params = new URLSearchParams();
-    if (currentSource) params.append("source", currentSource);
+    const source = searchParams.get("source");
+    if (source) params.append("source", source);
     const res = await fetch(`/api/income?${params}`);
     const data = await res.json();
     setIncomes(data.data || data);
@@ -176,7 +189,7 @@ export default function IncomeClient({
       await refreshData();
     } else {
       const error = await res.json();
-      alert(error.error || "เกิดข้อผิดพลาดในการอัพโหลดไฟล์");
+      toast.error(error.error || "เกิดข้อผิดพลาดในการอัพโหลดไฟล์");
     }
   }
 
@@ -187,7 +200,7 @@ export default function IncomeClient({
       await refreshData();
     } else {
       const error = await res.json();
-      alert(error.error || "เกิดข้อผิดพลาดในการลบไฟล์");
+      toast.error(error.error || "เกิดข้อผิดพลาดในการลบไฟล์");
     }
   }
 
@@ -225,14 +238,22 @@ export default function IncomeClient({
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("ต้องการลบรายการนี้หรือไม่?")) return;
+  function handleDeleteClick(id: string) {
+    setIncomeToDelete(id);
+    setDeleteDialogOpen(true);
+  }
+
+  async function handleConfirmDelete() {
+    if (!incomeToDelete) return;
 
     try {
-      await fetch(`/api/income/${id}`, { method: "DELETE" });
+      await fetch(`/api/income/${incomeToDelete}`, { method: "DELETE" });
       await refreshData();
     } catch (error) {
       console.error("Error deleting income:", error);
+    } finally {
+      setDeleteDialogOpen(false);
+      setIncomeToDelete(null);
     }
   }
 
@@ -411,7 +432,7 @@ export default function IncomeClient({
                           แก้ไข
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleDelete(income.id)}
+                          onClick={() => handleDeleteClick(income.id)}
                           className="text-destructive"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
@@ -446,7 +467,7 @@ export default function IncomeClient({
         </Table>
       </Card>
 
-      {/* Dialog */}
+      {/* Edit/Add Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -497,10 +518,10 @@ export default function IncomeClient({
                 </Select>
                 {(formData.source === "GRAB_FOOD" ||
                   formData.source === "LINE_MAN") && (
-                  <p className="text-xs text-orange-600">
-                    * ค่าธรรมเนียม 30% จะถูกคำนวณอัตโนมัติ
-                  </p>
-                )}
+                    <p className="text-xs text-orange-600">
+                      * ค่าธรรมเนียม 30% จะถูกคำนวณอัตโนมัติ
+                    </p>
+                  )}
               </div>
 
               <div className="space-y-2">
@@ -555,13 +576,35 @@ export default function IncomeClient({
                 {isSubmitting
                   ? "กำลังบันทึก..."
                   : editingIncome
-                  ? "บันทึก"
-                  : "เพิ่ม"}
+                    ? "บันทึก"
+                    : "เพิ่ม"}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>ยืนยันการลบ</AlertDialogTitle>
+            <AlertDialogDescription>
+              ต้องการลบรายการนี้หรือไม่? การดำเนินการนี้ไม่สามารถย้อนกลับได้
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              ลบ
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
+

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { dashboardQuerySchema, validateQueryParams } from "@/lib/utils";
+import { logger } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
 
@@ -163,7 +164,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error fetching dashboard data:", error);
+    logger.error("Error fetching dashboard data", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: "Failed to fetch dashboard data" },
       { status: 500 }

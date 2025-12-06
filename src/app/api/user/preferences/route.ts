@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { preferencesSchema } from "@/lib/validations/settings";
+import { logger } from "@/lib/logger";
 import type { Prisma } from "@prisma/client";
 
 interface UserPreferences {
@@ -34,7 +35,7 @@ export async function GET() {
 
     return NextResponse.json(preferences);
   } catch (error) {
-    console.error("Error fetching preferences:", error);
+    logger.error("Error fetching preferences", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: "เกิดข้อผิดพลาดในการดึงข้อมูล" },
       { status: 500 }
@@ -84,7 +85,7 @@ export async function PUT(request: Request) {
       preferences: newPreferences,
     });
   } catch (error) {
-    console.error("Error updating preferences:", error);
+    logger.error("Error updating preferences", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: "เกิดข้อผิดพลาดในการอัปเดตข้อมูล" },
       { status: 500 }

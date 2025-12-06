@@ -52,7 +52,7 @@ export async function GET(
 
     return NextResponse.json(expense);
   } catch (error) {
-    console.error("Error fetching expense:", error);
+    logger.error("Error fetching expense", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: "Failed to fetch expense" },
       { status: 500 }
@@ -83,7 +83,7 @@ export async function PUT(
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.errors }, { status: 400 });
     }
-    console.error("Error updating expense:", error);
+    logger.error("Error updating expense", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: "Failed to update expense" },
       { status: 500 }
@@ -129,7 +129,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error deleting expense:", error);
+    logger.error("Error deleting expense", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: "Failed to delete expense" },
       { status: 500 }

@@ -3,14 +3,21 @@ import { z } from "zod";
 // Check if we're on the server
 const isServer = typeof window === "undefined";
 
+// Check if we're in production
+const isProduction = process.env.NODE_ENV === "production";
+
 // Server-side only environment variables
 const serverEnvSchema = z.object({
   // Database (server-only)
   POSTGRES_PRISMA_URL: z.string().min(1, "POSTGRES_PRISMA_URL is required"),
 
-  // NextAuth (server-only)
-  NEXTAUTH_URL: z.string().url().optional(),
-  NEXTAUTH_SECRET: z.string().min(32).optional(),
+  // NextAuth (server-only) - required in production
+  NEXTAUTH_URL: isProduction
+    ? z.string().url("NEXTAUTH_URL is required in production")
+    : z.string().url().optional(),
+  NEXTAUTH_SECRET: isProduction
+    ? z.string().min(32, "NEXTAUTH_SECRET must be at least 32 characters in production")
+    : z.string().min(32).optional(),
 });
 
 // Shared environment variables (available on both client and server)

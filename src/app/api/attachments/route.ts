@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    logger.error("Error fetching attachments", { err });
+    logger.error("Error fetching attachments", err instanceof Error ? err : undefined);
     return NextResponse.json(
       { error: "เกิดข้อผิดพลาดในการดึงข้อมูลไฟล์แนบ" },
       { status: 500 }

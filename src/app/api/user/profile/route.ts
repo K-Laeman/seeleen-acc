@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { profileUpdateSchema } from "@/lib/validations/settings";
+import { logger } from "@/lib/logger";
 
 export async function GET() {
   try {
@@ -27,7 +28,7 @@ export async function GET() {
 
     return NextResponse.json(user);
   } catch (error) {
-    console.error("Error fetching profile:", error);
+    logger.error("Error fetching profile", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: "เกิดข้อผิดพลาดในการดึงข้อมูล" },
       { status: 500 }
@@ -74,7 +75,7 @@ export async function PUT(request: Request) {
       user: updatedUser,
     });
   } catch (error) {
-    console.error("Error updating profile:", error);
+    logger.error("Error updating profile", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: "เกิดข้อผิดพลาดในการอัปเดตข้อมูล" },
       { status: 500 }

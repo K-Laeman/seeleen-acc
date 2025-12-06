@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { systemSettingsSchema, defaultExpenseCategoryLabels } from "@/lib/validations/admin-settings";
+import { logger } from "@/lib/logger";
 import type { Prisma } from "@prisma/client";
 
 export async function GET() {
@@ -38,7 +39,7 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error("Error fetching system settings:", error);
+    logger.error("Error fetching system settings", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: "เกิดข้อผิดพลาดในการดึงข้อมูล" },
       { status: 500 }
@@ -103,7 +104,7 @@ export async function PUT(request: Request) {
       },
     });
   } catch (error) {
-    console.error("Error updating system settings:", error);
+    logger.error("Error updating system settings", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: "เกิดข้อผิดพลาดในการบันทึกข้อมูล" },
       { status: 500 }

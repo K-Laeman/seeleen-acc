@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { passwordChangeSchema } from "@/lib/validations/settings";
+import { logger } from "@/lib/logger";
 
 export async function PUT(request: Request) {
   try {
@@ -59,7 +60,7 @@ export async function PUT(request: Request) {
       message: "รหัสผ่านถูกเปลี่ยนเรียบร้อยแล้ว",
     });
   } catch (error) {
-    console.error("Error changing password:", error);
+    logger.error("Error changing password", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: "เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน" },
       { status: 500 }

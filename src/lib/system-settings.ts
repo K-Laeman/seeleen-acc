@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { defaultExpenseCategoryLabels } from "@/lib/validations/admin-settings";
+import { logger } from "@/lib/logger";
 
 export interface SystemSettings {
   grabFoodFeeRate: number;
@@ -33,7 +34,7 @@ export async function getSystemSettings(): Promise<SystemSettings> {
       },
     };
   } catch (error) {
-    console.error("Error fetching system settings:", error);
+    logger.error("Error fetching system settings", error instanceof Error ? error : undefined);
     return defaultSettings;
   }
 }

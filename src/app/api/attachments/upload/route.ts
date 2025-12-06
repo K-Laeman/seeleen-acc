@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    logger.error("Error uploading attachment", { err });
+    logger.error("Error uploading attachment", err instanceof Error ? err : undefined);
     return NextResponse.json(
       { error: "เกิดข้อผิดพลาดในการอัพโหลดไฟล์" },
       { status: 500 }
