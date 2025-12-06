@@ -203,14 +203,6 @@ function SidebarContent({ onNavigate, collapsed = false }: SidebarContentProps) 
                       ตั้งค่า
                     </Link>
                   </DropdownMenuItem>
-                  {isAdmin && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/admin/settings" onClick={onNavigate} className="cursor-pointer">
-                        <Cog className="mr-2 h-4 w-4" />
-                        ตั้งค่าระบบ
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={() => signOut({ callbackUrl: "/login" })}
@@ -261,14 +253,6 @@ function SidebarContent({ onNavigate, collapsed = false }: SidebarContentProps) 
                     ตั้งค่า
                   </Button>
                 </Link>
-                {isAdmin && (
-                  <Link href="/admin/settings" onClick={onNavigate}>
-                    <Button variant="ghost" className="w-full justify-start gap-3 h-10">
-                      <Cog className="h-4 w-4 text-muted-foreground" />
-                      ตั้งค่าระบบ
-                    </Button>
-                  </Link>
-                )}
                 <Separator className="my-2" />
                 <Button
                   variant="ghost"

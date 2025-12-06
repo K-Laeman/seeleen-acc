@@ -7,14 +7,119 @@ datasource db {
   url      = env("POSTGRES_PRISMA_URL")
 }
 
-// Income sources enum
+model Income {
+  id              String       @id @default(cuid())
+  amount          Float
+  source          IncomeSource
+  description     String?
+  date            DateTime     @default(now())
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  platformFee     Float?
+  platformFeeRate Float?
+  netAmount       Float?
+  attachments     Attachment[]
+
+  @@index([date])
+  @@index([source])
+}
+
+model Expense {
+  id          String          @id @default(cuid())
+  amount      Float
+  category    ExpenseCategory
+  description String?
+  date        DateTime        @default(now())
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  attachments Attachment[]
+
+  @@index([date])
+  @@index([category])
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  password      String?
+  image         String?
+  role          UserRole  @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  preferences   Json?
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Attachment {
+  id           String   @id @default(cuid())
+  fileName     String
+  fileSize     Int
+  mimeType     String
+  blobUrl      String
+  blobPathname String
+  incomeId     String?
+  expenseId    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  expense      Expense? @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  income       Income?  @relation(fields: [incomeId], references: [id], onDelete: Cascade)
+
+  @@index([incomeId])
+  @@index([expenseId])
+}
+
+model SystemSettings {
+  id                    String   @id @default("system-settings")
+  grabFoodFeeRate       Float    @default(30)
+  lineManFeeRate        Float    @default(30)
+  expenseCategoryLabels Json     @default("{}")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
 enum IncomeSource {
   OFFLINE_STORE
   GRAB_FOOD
   LINE_MAN
 }
 
-// Expense categories enum
 enum ExpenseCategory {
   INGREDIENTS
   RENT
@@ -28,139 +133,8 @@ enum ExpenseCategory {
   OTHER
 }
 
-// Income transactions
-model Income {
-  id          String       @id @default(cuid())
-  amount      Float
-  source      IncomeSource
-  description String?
-  date        DateTime     @default(now())
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-
-  // Platform fees (for GrabFood, LINE MAN)
-  platformFee     Float?
-  platformFeeRate Float?   // Percentage rate (e.g., 30 for 30%)
-  netAmount       Float?   // Amount after platform fees
-
-  // File attachments
-  attachments Attachment[]
-
-  @@index([date])
-  @@index([source])
-}
-
-// Expense transactions
-model Expense {
-  id          String          @id @default(cuid())
-  amount      Float
-  category    ExpenseCategory
-  description String?
-  date        DateTime        @default(now())
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-
-  // File attachments
-  attachments Attachment[]
-
-  @@index([date])
-  @@index([category])
-}
-
-// User roles enum
 enum UserRole {
   USER
   ADMIN
-}
-
-// User model for authentication
-model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime?
-  password      String?   // Hashed password for credentials provider
-  image         String?
-  role          UserRole  @default(USER)
-  preferences   Json?     // { theme: "light"|"dark"|"system", language: "th"|"en" }
-  accounts      Account[]
-  sessions      Session[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-}
-
-// OAuth account connections
-model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-}
-
-// User sessions
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-// Email verification tokens
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
-
-  @@unique([identifier, token])
-}
-
-// File attachments for Income and Expense records
-model Attachment {
-  id           String   @id @default(cuid())
-  fileName     String   // Original file name
-  fileSize     Int      // Size in bytes
-  mimeType     String   // e.g., "image/jpeg", "application/pdf"
-  blobUrl      String   // Vercel Blob URL
-  blobPathname String   // Pathname in Blob storage for deletion
-
-  // Polymorphic relationship - only one will be set
-  incomeId  String?
-  expenseId String?
-
-  income  Income?  @relation(fields: [incomeId], references: [id], onDelete: Cascade)
-  expense Expense? @relation(fields: [expenseId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([incomeId])
-  @@index([expenseId])
-}
-
-// System-wide settings (singleton pattern - only one record)
-model SystemSettings {
-  id                    String   @id @default("system-settings")
-
-  // Platform fee rates (percentages, 0-100)
-  grabFoodFeeRate       Float    @default(30)
-  lineManFeeRate        Float    @default(30)
-
-  // Expense category labels (JSON object keyed by enum value)
-  expenseCategoryLabels Json     @default("{}")
-
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  SUPERADMIN
 }

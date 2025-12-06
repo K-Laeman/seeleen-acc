@@ -46,6 +46,29 @@ async function main() {
     role: nartnara.role,
   });
 
+  // Create superadmin account
+  const superadminPassword = await bcrypt.hash("superadmin123", 12);
+  const superadmin = await prisma.user.upsert({
+    where: { email: "kiattiyot.la@gmail.com" },
+    update: {
+      role: "SUPERADMIN",
+      password: superadminPassword,
+    },
+    create: {
+      email: "kiattiyot.la@gmail.com",
+      name: "Kiattiyot (Superadmin)",
+      password: superadminPassword,
+      role: "SUPERADMIN",
+    },
+  });
+
+  console.log("Created superadmin account:", {
+    id: superadmin.id,
+    email: superadmin.email,
+    name: superadmin.name,
+    role: superadmin.role,
+  });
+
   // Create default system settings
   const defaultExpenseCategoryLabels = {
     INGREDIENTS: "วัตถุดิบ",
@@ -78,11 +101,13 @@ async function main() {
   });
 
   console.log("\n-----------------------------------");
-  console.log("Owner login credentials:");
+  console.log("Login credentials:");
   console.log("1. Email: kiattiyot@firedchicken.com");
-  console.log("   Password: admin123");
+  console.log("   Password: admin123 (ADMIN)");
   console.log("2. Email: nartnara@firedchicken.com");
-  console.log("   Password: admin123");
+  console.log("   Password: admin123 (ADMIN)");
+  console.log("3. Email: kiattiyot.la@gmail.com");
+  console.log("   Password: superadmin123 (SUPERADMIN)");
   console.log("-----------------------------------\n");
 
   console.log("Database seeding completed!");
